@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spot on Hold — Sistema de Prospección Automatizado</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --magenta: #C4186C;
+  --red: #E8194B;
+  --gradient: linear-gradient(135deg, #C4186C, #E8194B);
+  --char: #3D3D3D;
+  --mid: #6B6B6B;
+  --light: #E8194B;
+  --rose: #FFF0F4;
+  --off: #FDF8F9;
+  --white: #FFFFFF;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { font-family:'DM Sans',sans-serif; background:var(--off); color:var(--char); overflow-x:hidden; }
+
+/* NAV */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:200;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 40px;
+  background:rgba(255,255,255,0.92);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(196,24,108,0.12);
+}
+.nav-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:17px; background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.nav-links { display:flex; gap:6px; }
+.nav-link {
+  padding:6px 14px; border-radius:20px; font-size:12px; font-weight:500;
+  color:var(--mid); cursor:pointer; transition:all .25s; border:none; background:none;
+}
+.nav-link:hover, .nav-link.active { background:var(--rose); color:var(--magenta); }
+
+/* SLIDES */
+.slide { min-height:100vh; padding:100px 60px 60px; display:flex; flex-direction:column; justify-content:center; position:relative; overflow:hidden; }
+.slide:nth-child(even) { background:var(--white); }
+
+/* EYEBROW */
+.eyebrow { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:10px; }
+
+/* HEADINGS */
+.section-title { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(32px,5vw,52px); line-height:1.1; color:var(--char); margin-bottom:24px; }
+.grad-text { background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+/* REVEAL */
+.reveal { opacity:0; transform:translateY(30px); transition:opacity .7s ease, transform .7s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+.d1 { transition-delay:.1s; } .d2 { transition-delay:.2s; } .d3 { transition-delay:.3s; } .d4 { transition-delay:.4s; }
+
+/* COVER */
+#s1 { background:var(--white); min-height:100vh; display:flex; align-items:center; }
+.cover-wrap { display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center; width:100%; max-width:1100px; margin:0 auto; }
+.cover-tag { display:inline-flex; align-items:center; gap:8px; background:var(--rose); border:1px solid rgba(196,24,108,0.2); border-radius:20px; padding:6px 14px; font-size:11px; font-weight:600; color:var(--magenta); letter-spacing:1px; margin-bottom:24px; }
+.cover-tag-dot { width:7px; height:7px; border-radius:50%; background:var(--gradient); animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+.cover-title { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(42px,6vw,72px); line-height:1.0; color:var(--char); margin-bottom:20px; }
+.cover-sub { font-size:16px; color:var(--mid); line-height:1.6; margin-bottom:36px; }
+.cover-pills { display:flex; gap:14px; flex-wrap:wrap; }
+.pill { background:var(--rose); border:1px solid rgba(196,24,108,0.15); border-radius:16px; padding:14px 20px; text-align:center; }
+.pill-num { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.pill-label { font-size:11px; color:var(--mid); line-height:1.4; margin-top:2px; }
+.cover-visual { display:flex; flex-direction:column; gap:12px; }
+.cv-card { background:var(--rose); border:1px solid rgba(196,24,108,0.15); border-radius:16px; padding:18px 22px; display:flex; align-items:center; gap:14px; transition:transform .3s; }
+.cv-card:hover { transform:translateX(6px); }
+.cv-icon { font-size:28px; }
+.cv-info { flex:1; }
+.cv-name { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:var(--char); }
+.cv-price { font-size:12px; color:var(--magenta); font-weight:600; margin-top:2px; }
+
+/* PHASES */
+.phases-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-top:24px; }
+.phase-card {
+  background:var(--white); border:1.5px solid rgba(196,24,108,0.15); border-radius:20px;
+  padding:24px 18px; text-align:center; cursor:pointer;
+  transition:all .3s; position:relative; overflow:hidden;
+}
+.phase-card::before { content:''; position:absolute; inset:0; background:var(--gradient); opacity:0; transition:opacity .3s; }
+.phase-card:hover::before { opacity:0.05; }
+.phase-card:hover { border-color:var(--magenta); transform:translateY(-4px); box-shadow:0 12px 32px rgba(196,24,108,0.18); }
+.phase-num { font-family:'Syne',sans-serif; font-size:11px; font-weight:800; color:var(--magenta); letter-spacing:2px; margin-bottom:10px; }
+.phase-icon { font-size:32px; margin-bottom:10px; display:block; }
+.phase-name { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--char); margin-bottom:6px; }
+.phase-desc { font-size:11px; color:var(--mid); line-height:1.5; }
+.phase-btn { margin-top:14px; font-size:11px; font-weight:600; color:var(--magenta); display:inline-flex; align-items:center; gap:4px; }
+.phase-btn::after { content:'→'; transition:transform .2s; }
+.phase-card:hover .phase-btn::after { transform:translateX(3px); }
+
+/* CYCLE BAR */
+.cycle-bar { display:flex; gap:0; margin-top:28px; border-radius:12px; overflow:hidden; height:56px; }
+.cycle-seg { flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:10px; font-weight:700; color:white; gap:2px; }
+.cycle-seg:nth-child(1) { background:var(--magenta); }
+.cycle-seg:nth-child(2) { background:#D4185E; }
+.cycle-seg:nth-child(3) { background:#DF1855; }
+.cycle-seg:nth-child(4) { background:#E4184F; }
+.cycle-seg:nth-child(5) { background:var(--red); }
+.cycle-seg span { font-size:16px; }
+
+/* MODAL */
+.modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:500; justify-content:center; align-items:center; backdrop-filter:blur(4px); }
+.modal-bg.open { display:flex; }
+.modal { background:var(--white); border-radius:24px; width:90%; max-width:700px; max-height:85vh; overflow-y:auto; position:relative; box-shadow:0 32px 80px rgba(0,0,0,0.25); }
+.modal-header { background:var(--gradient); padding:28px 32px; border-radius:24px 24px 0 0; }
+.modal-header-tag { font-size:11px; font-weight:700; letter-spacing:2px; color:rgba(255,255,255,0.7); margin-bottom:6px; }
+.modal-header-title { font-family:'Syne',sans-serif; font-size:26px; font-weight:800; color:white; }
+.modal-close { position:absolute; top:20px; right:24px; background:rgba(255,255,255,0.2); border:none; color:white; width:36px; height:36px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s; }
+.modal-close:hover { background:rgba(255,255,255,0.35); }
+.modal-body { padding:28px 32px; }
+.modal-section { margin-bottom:24px; }
+.ms-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--char); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--rose); }
+.proc-steps { display:flex; flex-direction:column; gap:10px; }
+.proc-step { display:flex; gap:14px; align-items:flex-start; }
+.ps-num { width:28px; height:28px; border-radius:50%; background:var(--gradient); color:white; font-family:'Syne',sans-serif; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+.ps-title { font-size:13px; font-weight:600; color:var(--char); margin-bottom:3px; }
+.ps-desc { font-size:12px; color:var(--mid); line-height:1.5; }
+.kpi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.kpi-c { background:var(--rose); border-radius:14px; padding:16px; text-align:center; }
+.kpi-lbl { font-size:10px; color:var(--mid); margin-bottom:4px; font-weight:500; }
+.kpi-val { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.kpi-unit { font-size:10px; color:var(--mid); margin-top:2px; }
+.tier-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.tier-card { background:var(--rose); border-radius:12px; padding:14px 16px; border-left:3px solid var(--red); }
+.tier-label { font-family:'Syne',sans-serif; font-size:11px; font-weight:800; color:var(--char); margin-bottom:8px; }
+.tier-list { font-size:11px; color:var(--mid); line-height:1.8; }
+.email-cards { display:flex; flex-direction:column; gap:10px; }
+.email-card { background:var(--rose); border-radius:12px; padding:14px 18px; display:flex; gap:14px; align-items:flex-start; border-left:3px solid var(--magenta); }
+.email-day { font-family:'Syne',sans-serif; font-size:11px; font-weight:800; color:var(--magenta); white-space:nowrap; }
+.email-title { font-size:13px; font-weight:600; color:var(--char); margin-bottom:3px; }
+.email-desc { font-size:11px; color:var(--mid); line-height:1.5; }
+.wa-bubbles { display:flex; flex-direction:column; gap:10px; }
+.wa-bubble { background:#DCF8C6; border-radius:12px 12px 2px 12px; padding:12px 16px; max-width:85%; align-self:flex-end; }
+.wa-bubble-label { font-size:10px; font-weight:700; color:#075E54; margin-bottom:4px; }
+.wa-bubble-text { font-size:12px; color:#333; line-height:1.5; }
+.wa-bubble-time { font-size:10px; color:#999; text-align:right; margin-top:4px; }
+.pipeline-stages { display:flex; gap:8px; align-items:flex-end; margin-top:10px; }
+.stage { flex:1; background:var(--rose); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:10px 6px; min-height:60px; }
+.stage-icon { font-size:20px; }
+.stage-label { font-size:9px; font-weight:700; color:var(--magenta); letter-spacing:1px; text-align:center; }
+.stage-arrow { font-size:14px; color:var(--magenta); align-self:center; padding-bottom:14px; }
+.metric-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.metric-pill { background:var(--rose); border-radius:10px; padding:12px; text-align:center; }
+.mp-val { font-size:22px; margin-bottom:4px; }
+.mp-label { font-size:10px; color:var(--mid); line-height:1.4; }
+
+/* SERVICES */
+.services-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:24px; }
+.svc-card { background:var(--white); border:1.5px solid rgba(196,24,108,0.12); border-radius:20px; padding:24px 20px; transition:all .3s; }
+.svc-card:hover { border-color:var(--magenta); box-shadow:0 8px 28px rgba(196,24,108,0.14); transform:translateY(-3px); }
+.svc-icon { font-size:32px; margin-bottom:12px; display:block; }
+.svc-name { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--char); margin-bottom:6px; }
+.svc-price { font-size:18px; font-weight:700; background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:8px; }
+.svc-desc { font-size:12px; color:var(--mid); line-height:1.5; }
+
+/* NEXT STEPS */
+.steps-list { display:flex; flex-direction:column; gap:12px; margin-top:24px; }
+.step-item { display:flex; gap:16px; align-items:flex-start; background:var(--white); border:1px solid rgba(196,24,108,0.12); border-radius:16px; padding:18px 22px; transition:all .3s; }
+.step-item:hover { border-color:var(--magenta); box-shadow:0 6px 20px rgba(196,24,108,0.1); }
+.step-circle { width:36px; height:36px; border-radius:50%; background:var(--gradient); color:white; font-family:'Syne',sans-serif; font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.step-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--char); margin-bottom:4px; }
+.step-desc { font-size:12px; color:var(--mid); line-height:1.5; }
+.cta-bar { background:var(--gradient); border-radius:16px; padding:22px 28px; text-align:center; margin-top:28px; color:white; }
+.cta-bar h3 { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; margin-bottom:6px; }
+.cta-bar p { font-size:13px; opacity:.85; }
+
+/* SCORE BAR */
+.score-bar-wrap { margin:12px 0; }
+.score-label { display:flex; justify-content:space-between; font-size:12px; color:var(--mid); margin-bottom:5px; }
+.score-bar { height:8px; background:var(--rose); border-radius:4px; overflow:hidden; }
+.score-fill { height:100%; background:var(--gradient); border-radius:4px; width:0; transition:width 1s ease .3s; }
+
+/* FOOTER NAV */
+.slide-footer { position:absolute; bottom:24px; right:40px; display:flex; gap:8px; }
+.sf-btn { background:var(--rose); border:1px solid rgba(196,24,108,0.2); border-radius:20px; padding:8px 16px; font-size:12px; font-weight:600; color:var(--magenta); cursor:pointer; transition:all .2s; }
+.sf-btn:hover { background:var(--magenta); color:white; }
+
+@media(max-width:768px) {
+  .slide { padding:90px 24px 50px; }
+  .cover-wrap { grid-template-columns:1fr; }
+  .phases-grid { grid-template-columns:1fr 1fr; }
+  .services-grid { grid-template-columns:1fr 1fr; }
+  nav { padding:12px 20px; }
+  .nav-links { display:none; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">SPOT ON HOLD</div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="scrollTo('s1')">Inicio</button>
+    <button class="nav-link" onclick="scrollTo('s2')">Servicios</button>
+    <button class="nav-link" onclick="scrollTo('s3')">Sistema</button>
+    <button class="nav-link" onclick="scrollTo('s4')">Próximos Pasos</button>
+  </div>
+</nav>
+
+<!-- COVER -->
+<section class="slide" id="s1">
+  <div class="cover-wrap">
+    <div>
+      <div class="cover-tag reveal"><div class="cover-tag-dot"></div>SISTEMA AUTOMATIZADO · PUERTO RICO</div>
+      <h1 class="cover-title reveal d1">SISTEMA<br>DE<br><span class="grad-text">PROSPECCIÓN</span></h1>
+      <p class="cover-sub reveal d2">Automatizado para Spot on Hold —<br>78 municipios de Puerto Rico en un solo pipeline.</p>
+      <div class="cover-pills reveal d3">
+        <div class="pill"><div class="pill-num">500+</div><div class="pill-label">Leads<br>por semana</div></div>
+        <div class="pill"><div class="pill-num">78</div><div class="pill-label">Municipios<br>de PR</div></div>
+        <div class="pill"><div class="pill-num">15</div><div class="pill-label">Días por<br>ciclo</div></div>
+        <div class="pill"><div class="pill-num">5</div><div class="pill-label">Fases<br>automatizadas</div></div>
+      </div>
+    </div>
+    <div class="cover-visual reveal d2">
+      <div class="cv-card"><span class="cv-icon">📞</span><div class="cv-info"><div class="cv-name">Mensajes On-Hold</div><div class="cv-price">desde $55/mes</div></div></div>
+      <div class="cv-card"><span class="cv-icon">🔀</span><div class="cv-info"><div class="cv-name">IVR / Directorio</div><div class="cv-price">$125 – $600</div></div></div>
+      <div class="cv-card"><span class="cv-icon">🎵</span><div class="cv-info"><div class="cv-name">Audio In-Store</div><div class="cv-price">desde $65/mes</div></div></div>
+      <div class="cv-card"><span class="cv-icon">☁️</span><div class="cv-info"><div class="cv-name">PBX / VoIP Hosted</div><div class="cv-price">desde $25/usuario</div></div></div>
+      <div class="cv-card"><span class="cv-icon">📺</span><div class="cv-info"><div class="cv-name">Video Box Display</div><div class="cv-price">desde $75/mes</div></div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><button class="sf-btn" onclick="scrollTo('s2')">Ver servicios →</button></div>
+</section>
+
+<!-- SERVICIOS -->
+<section class="slide" id="s2">
+  <div class="eyebrow reveal">¿Qué ofrecemos?</div>
+  <h2 class="section-title reveal d1">Nuestros <span class="grad-text">Servicios</span></h2>
+  <div class="services-grid">
+    <div class="svc-card reveal d1">
+      <span class="svc-icon">📞</span>
+      <div class="svc-name">Mensajes On-Hold</div>
+      <div class="svc-price">$55/mes</div>
+      <div class="svc-desc">Audio profesional para clientes mientras esperan en línea. Convierte tiempo de espera en oportunidad de venta.</div>
+    </div>
+    <div class="svc-card reveal d2">
+      <span class="svc-icon">🔀</span>
+      <div class="svc-name">Directorio / IVR</div>
+      <div class="svc-price">$125 – $600</div>
+      <div class="svc-desc">Sistema telefónico automatizado e inteligente. Dirige llamadas al departamento correcto 24/7.</div>
+    </div>
+    <div class="svc-card reveal d3">
+      <span class="svc-icon">🎵</span>
+      <div class="svc-name">Audio In-Store</div>
+      <div class="svc-price">desde $65/mes</div>
+      <div class="svc-desc">Música y mensajes promocionales personalizados para tu negocio. Mejora la experiencia del cliente.</div>
+    </div>
+    <div class="svc-card reveal d1">
+      <span class="svc-icon">☁️</span>
+      <div class="svc-name">PBX / VoIP Hosted</div>
+      <div class="svc-price">desde $25/usuario</div>
+      <div class="svc-desc">Central telefónica en la nube. Sin hardware costoso, escalable y con soporte incluido.</div>
+    </div>
+    <div class="svc-card reveal d2">
+      <span class="svc-icon">📺</span>
+      <div class="svc-name">Video Box Display</div>
+      <div class="svc-price">desde $75/mes</div>
+      <div class="svc-desc">Pantallas digitales con contenido dinámico para salas de espera, lobbies y áreas de clientes.</div>
+    </div>
+    <div class="svc-card reveal d3" style="background:var(--rose);border-color:var(--magenta);">
+      <span class="svc-icon">🎁</span>
+      <div class="svc-name">Combo Packages</div>
+      <div class="svc-price">Precio especial</div>
+      <div class="svc-desc">Combina On-Hold + IVR + Audio In-Store y obtén descuento especial. La solución completa para tu negocio.</div>
+    </div>
+  </div>
+  <div class="slide-footer"><button class="sf-btn" onclick="scrollTo('s1')">← Inicio</button><button class="sf-btn" onclick="scrollTo('s3')">Ver sistema →</button></div>
+</section>
+
+<!-- SISTEMA -->
+<section class="slide" id="s3">
+  <div class="eyebrow reveal">¿Cómo funciona?</div>
+  <h2 class="section-title reveal d1">El Sistema de <span class="grad-text">5 Fases</span></h2>
+  <p class="reveal d2" style="color:var(--mid);font-size:14px;margin-bottom:8px;">Haz clic en cada fase para ver el detalle completo del proceso.</p>
+  <div class="phases-grid reveal d2">
+    <div class="phase-card" onclick="openModal('scrape')">
+      <div class="phase-num">FASE 01</div>
+      <span class="phase-icon">🗺️</span>
+      <div class="phase-name">Scrape</div>
+      <div class="phase-desc">Extracción automatizada de leads desde Google Maps en los 78 municipios de PR</div>
+      <div class="phase-btn">Ver detalle</div>
+    </div>
+    <div class="phase-card" onclick="openModal('calificacion')">
+      <div class="phase-num">FASE 02</div>
+      <span class="phase-icon">⭐</span>
+      <div class="phase-name">Calificación</div>
+      <div class="phase-desc">Scoring automático que clasifica cada lead en Tier A, B o C según su potencial</div>
+      <div class="phase-btn">Ver detalle</div>
+    </div>
+    <div class="phase-card" onclick="openModal('email')">
+      <div class="phase-num">FASE 03</div>
+      <span class="phase-icon">📧</span>
+      <div class="phase-name">Email</div>
+      <div class="phase-desc">3 emails personalizados automáticos en los días 1, 5 y 12 del ciclo de 15 días</div>
+      <div class="phase-btn">Ver detalle</div>
+    </div>
+    <div class="phase-card" onclick="openModal('whatsapp')">
+      <div class="phase-num">FASE 04</div>
+      <span class="phase-icon">💬</span>
+      <div class="phase-name">WhatsApp</div>
+      <div class="phase-desc">4 mensajes secuenciales de seguimiento en WhatsApp con plantillas optimizadas</div>
+      <div class="phase-btn">Ver detalle</div>
+    </div>
+    <div class="phase-card" onclick="openModal('pipeline')">
+      <div class="phase-num">FASE 05</div>
+      <span class="phase-icon">📊</span>
+      <div class="phase-name">Pipeline</div>
+      <div class="phase-desc">Tracking completo en Excel con KPIs semanales y reportes de conversión</div>
+      <div class="phase-btn">Ver detalle</div>
+    </div>
+  </div>
+  <div class="cycle-bar reveal d3">
+    <div class="cycle-seg"><span>🗺️</span>DÍA 1</div>
+    <div class="cycle-seg"><span>⭐</span>DÍA 1</div>
+    <div class="cycle-seg"><span>📧</span>DÍA 1·5·12</div>
+    <div class="cycle-seg"><span>💬</span>DÍA 3·7</div>
+    <div class="cycle-seg"><span>📊</span>CONTINUO</div>
+  </div>
+  <div class="slide-footer"><button class="sf-btn" onclick="scrollTo('s2')">← Servicios</button><button class="sf-btn" onclick="scrollTo('s4')">Próximos pasos →</button></div>
+</section>
+
+<!-- PRÓXIMOS PASOS -->
+<section class="slide" id="s4">
+  <div class="eyebrow reveal">¿Cómo arrancamos?</div>
+  <h2 class="section-title reveal d1">Próximos <span class="grad-text">Pasos</span></h2>
+  <div class="steps-list">
+    <div class="step-item reveal d1">
+      <div class="step-circle">1</div>
+      <div><div class="step-title">Reunión de arranque</div><div class="step-desc">Definimos los sectores prioritarios, municipios y perfil del cliente ideal para el primer lote de prospección.</div></div>
+    </div>
+    <div class="step-item reveal d2">
+      <div class="step-circle">2</div>
+      <div><div class="step-title">Primer scrape</div><div class="step-desc">Seleccionamos los sectores y municipios prioritarios. El sistema extrae el primer lote de 500+ leads calificados.</div></div>
+    </div>
+    <div class="step-item reveal d3">
+      <div class="step-circle">3</div>
+      <div><div class="step-title">Calificación y revisión</div><div class="step-desc">El sistema califica automáticamente. Revisamos juntos los Tier A antes de lanzar el outreach.</div></div>
+    </div>
+    <div class="step-item reveal d4">
+      <div class="step-circle">4</div>
+      <div><div class="step-title">Lanzamos outreach</div><div class="step-desc">Email + WhatsApp activados. Primeros contactos en las primeras 24 horas del ciclo.</div></div>
+    </div>
+    <div class="step-item reveal d4">
+      <div class="step-circle">5</div>
+      <div><div class="step-title">Reporte semana 1</div><div class="step-desc">Revisamos KPIs: tasa de apertura, respuestas recibidas, citas agendadas y leads en negociación.</div></div>
+    </div>
+  </div>
+  <div class="cta-bar reveal d4">
+    <h3>Sistema listo para activar</h3>
+    <p>El primer ciclo completo dura 15 días · spotsonhold.com · Puerto Rico</p>
+  </div>
+  <div class="slide-footer"><button class="sf-btn" onclick="scrollTo('s3')">← Sistema</button></div>
+</section>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-scrape">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-tag">FASE 01</div>
+      <div class="modal-header-title">🗺️ Scrape de Google Maps</div>
+      <button class="modal-close" onclick="closeModal('scrape')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="ms-title">¿Cómo funciona el scraping?</div>
+        <div class="proc-steps">
+          <div class="proc-step"><div class="ps-num">1</div><div><div class="ps-title">Selección de sector y municipio</div><div class="ps-desc">El sistema recibe una categoría (ej. "clínicas") y un municipio de los 78 disponibles en PR. Lanza la búsqueda automáticamente en Google Maps.</div></div></div>
+          <div class="proc-step"><div class="ps-num">2</div><div><div class="ps-title">Extracción de datos</div><div class="ps-desc">Captura nombre del negocio, dirección, teléfono, website, rating de Google y cantidad de reseñas para cada resultado.</div></div></div>
+          <div class="proc-step"><div class="ps-num">3</div><div><div class="ps-title">Filtro de teléfono PR</div><div class="ps-desc">Solo pasan leads con número de teléfono válido de Puerto Rico (787/939). Sin teléfono, el lead no aplica para SOH.</div></div></div>
+          <div class="proc-step"><div class="ps-num">4</div><div><div class="ps-title">Eliminación de duplicados</div><div class="ps-desc">El sistema compara contra el historial completo. Ningún negocio aparece dos veces en ciclos distintos.</div></div></div>
+          <div class="proc-step"><div class="ps-num">5</div><div><div class="ps-title">Registro en pipeline</div><div class="ps-desc">Cada lead queda guardado con fecha de extracción, sector, municipio y puntuación inicial.</div></div></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="ms-title">Volumen estimado por semana</div>
+        <div class="kpi-grid">
+          <div class="kpi-c"><div class="kpi-lbl">Leads extraídos</div><div class="kpi-val" data-target="500">0</div><div class="kpi-unit">por semana</div></div>
+          <div class="kpi-c"><div class="kpi-lbl">Municipios cubiertos</div><div class="kpi-val" data-target="78">0</div><div class="kpi-unit">de Puerto Rico</div></div>
+          <div class="kpi-c"><div class="kpi-lbl">Sectores activos</div><div class="kpi-val" data-target="12">0</div><div class="kpi-unit">categorías</div></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="ms-title">Datos que capturamos por lead</div>
+        <div class="metric-grid">
+          <div class="metric-pill"><div class="mp-val">📞</div><div class="mp-label">Teléfono verificado PR</div></div>
+          <div class="metric-pill"><div class="mp-val">🌐</div><div class="mp-label">Website (si existe)</div></div>
+          <div class="metric-pill"><div class="mp-val">⭐</div><div class="mp-label">Rating y reseñas</div></div>
+          <div class="metric-pill"><div class="mp-val">📍</div><div class="mp-label">Dirección y municipio</div></div>
+          <div class="metric-pill"><div class="mp-val">🏷️</div><div class="mp-label">Sector del negocio</div></div>
+          <div class="metric-pill"><div class="mp-val">📅</div><div class="mp-label">Fecha de extracción</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-calificacion">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-tag">FASE 02</div>
+      <div class="modal-header-title">⭐ Calificación & Scoring</div>
+      <button class="modal-close" onclick="closeModal('calificacion')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="ms-title">Sistema de puntuación automático</div>
+        <div class="score-bar-wrap"><div class="score-label"><span>Rating Google ≥ 4.0 (+25 pts)</span><span>25</span></div><div class="score-bar"><div class="score-fill" data-width="25"></div></div></div>
+        <div class="score-bar-wrap"><div class="score-label"><span>Más de 50 reseñas (+20 pts)</span><span>20</span></div><div class="score-bar"><div class="score-fill" data-width="20"></div></div></div>
+        <div class="score-bar-wrap"><div class="score-label"><span>Tiene website propio (+15 pts)</span><span>15</span></div><div class="score-bar"><div class="score-fill" data-width="15"></div></div></div>
+        <div class="score-bar-wrap"><div class="score-label"><span>Sector Tier 1 (+20 pts extra)</span><span>20</span></div><div class="score-bar"><div class="score-fill" data-width="20"></div></div></div>
+        <div class="score-bar-wrap"><div class="score-label"><span>Teléfono verificado (+10 pts)</span><span>10</span></div><div class="score-bar"><div class="score-fill" data-width="10"></div></div></div>
+      </div>
+      <div class="modal-section">
+        <div class="ms-title">Clasificación por tiers</div>
+        <div class="tier-grid">
+          <div class="tier-card" style="border-color:var(--magenta);">
+            <div class="tier-label">🏆 TIER A · 70+ puntos</div>
+            <div class="tier-list">Prioridad máxima<br>Contacto inmediato<br>Email + WhatsApp día 1</div>
+          </div>
+          <div class="tier-card">
+            <div class="tier-label">🥈 TIER B · 40–69 puntos</div>
+            <div class="tier-list">Prioridad media<br>Segundo lote de contacto<br>Secuencia estándar</div>
+          </div>
+          <div class="tier-card" style="border-color:#aaa;">
+            <div class="tier-label">🥉 TIER C · menos de 40</div>
+            <div class="tier-list">Prioridad baja<br>Reserva para ciclos futuros<br>Solo email</div>
+          </div>
+          <div class="tier-card" style="border-color:#ddd;">
+            <div class="tier-label">❌ DESCARTADO</div>
+            <div class="tier-list">Sin teléfono PR<br>Duplicado en historial<br>Ya es cliente SOH</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="ms-title">Sectores Tier 1 (máxima prioridad)</div>
+        <div class="tier-list" style="font-size:13px;line-height:2;">🏥 Clínicas y Centros de Salud &nbsp;·&nbsp; 🚗 Concesionarios de Autos &nbsp;·&nbsp; 🏦 Bancos e Instituciones Financieras &nbsp;·&nbsp; 🛡️ Seguros y Corredores &nbsp;·&nbsp; 🎓 Centros Educativos &nbsp;·&nbsp; 🍽️ Restaurantes y Hospitalidad</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-email">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-tag">FASE 03</div>
+      <div class="modal-header-title">📧 Secuencia de Email</div>
+      <button class="modal-close" onclick="closeModal('email')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="ms-title">3 emails en 15 días</div>
+        <div class="email-cards">
+          <div class="email-card">
+            <div class="email-day">📧 DÍA 1</div>
+            <div><div class="email-title">Email de Presentación</div><div class="email-desc">Introducción personalizada de SOH con los servicios relevantes para el sector del prospecto. Primera impresión profesional y directa.</div></div>
+          </div>
+          <div class="email-card">
+            <div class="email-day">📧 DÍA 5</div>
+            <div><div class="email-title">Caso de Éxito</div><div class="email-desc">Resultado real de un negocio similar en Puerto Rico. Prueba social y credibilidad comprobada con números concretos.</div></div>
+          </div>
+          <div class="email-card">
+            <div class="email-day">📧 DÍA 12</div>
+            <div><div class="email-title">Email Final con Oferta</div><div class="email-desc">Mensaje con urgencia y propuesta concreta. Última oportunidad del ciclo con llamada a la acción clara y deadline específico.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="ms-title">Capacidad y automatización</div>
+        <div class="kpi-grid">
+          <div class="kpi-c"><div class="kpi-lbl">Emails por día</div><div class="kpi-val" data-target="500">0</div><div class="kpi-unit">vía Gmail</div></div>
+          <div class="kpi-c"><div class="kpi-lbl">Tasa apertura est.</div><div class="kpi-val" data-target="28">0</div><div class="kpi-unit">% promedio</div></div>
+          <div class="kpi-c"><div class="kpi-lbl">Respuesta esperada</div><div class="kpi-val" data-target="5">0</div><div class="kpi-unit">% del total</div></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="ms-title">Personalización automática por email</div>
+        <div class="proc-steps">
+          <div class="proc-step"><div class="ps-num">✓</div><div><div class="ps-title">Nombre del negocio</div><div class="ps-desc">Cada email incluye el nombre real del prospecto extraído de Google Maps.</div></div></div>
+          <div class="proc-step"><div class="ps-num">✓</div><div><div class="ps-title">Sector específico</div><div class="ps-desc">El contenido varía según si es clínica, restaurante, concesionario, etc.</div></div></div>
+          <div class="proc-step"><div class="ps-num">✓</div><div><div class="ps-title">Municipio mencionado</div><div class="ps-desc">Referencia local que aumenta la tasa de apertura y credibilidad.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-whatsapp">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-tag">FASE 04</div>
+      <div class="modal-header-title">💬 Secuencia de WhatsApp</div>
+      <button class="modal-close" onclick="closeModal('whatsapp')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="ms-title">4 mensajes estratégicos</div>
+        <div class="wa-bubbles">
+          <div style="align-self:flex-start;font-size:11px;color:var(--mid);margin-bottom:4px;">DÍA 3 — Primer contacto</div>
+          <div class="wa-bubble">
+            <div class="wa-bubble-label">Mensaje #1 — Presentación</div>
+            <div class="wa-bubble-text">Hola [Nombre], le escribo de Spot on Hold. Le enviamos un email sobre cómo podemos mejorar la experiencia de sus clientes mientras esperan en línea. ¿Puedo contarle en 2 minutos? 📞</div>
+            <div class="wa-bubble-time">✓✓</div>
+          </div>
+          <div style="align-self:flex-start;font-size:11px;color:var(--mid);margin:8px 0 4px;">DÍA 7 — Follow-up</div>
+          <div class="wa-bubble">
+            <div class="wa-bubble-label">Mensaje #2 — Demo gratuita</div>
+            <div class="wa-bubble-text">Buenos días [Nombre], quería ofrecerle una demo gratuita del servicio. Podemos mostrarle cómo sonaría su negocio con mensajes profesionales on-hold. ¿Tiene 15 minutos esta semana? 🎙️</div>
+            <div class="wa-bubble-time">✓✓</div>
+          </div>
+          <div style="align-self:flex-start;font-size:11px;color:var(--mid);margin:8px 0 4px;">Post-llamada</div>
+          <div class="wa-bubble">
+            <div class="wa-bubble-label">Mensaje #3 — Seguimiento de llamada</div>
+            <div class="wa-bubble-text">Gracias por su tiempo, [Nombre]. Como conversamos, le envío la propuesta detallada por email. Cualquier pregunta, aquí estoy. ¡Espero podamos trabajar juntos! 🤝</div>
+            <div class="wa-bubble-time">✓✓</div>
+          </div>
+          <div style="align-self:flex-start;font-size:11px;color:var(--mid);margin:8px 0 4px;">Día 14 — Cierre del ciclo</div>
+          <div class="wa-bubble">
+            <div class="wa-bubble-label">Mensaje #4 — Propuesta final</div>
+            <div class="wa-bubble-text">[Nombre], esta semana cerramos este ciclo de prospección. Si le interesa comenzar con SOH antes del viernes, podemos hacer efectivo el precio especial de lanzamiento. ¿Lo tomamos? ✅</div>
+            <div class="wa-bubble-time">✓✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-pipeline">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-tag">FASE 05</div>
+      <div class="modal-header-title">📊 Pipeline & KPIs</div>
+      <button class="modal-close" onclick="closeModal('pipeline')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="ms-title">Etapas del pipeline</div>
+        <div class="pipeline-stages">
+          <div class="stage" style="height:65px"><div class="stage-icon">🆕</div><div class="stage-label">NUEVO</div></div>
+          <div class="stage-arrow">›</div>
+          <div class="stage" style="height:80px"><div class="stage-icon">📤</div><div class="stage-label">CONTACTADO</div></div>
+          <div class="stage-arrow">›</div>
+          <div class="stage" style="height:95px"><div class="stage-icon">💬</div><div class="stage-label">EN DIÁLOGO</div></div>
+          <div class="stage-arrow">›</div>
+          <div class="stage" style="height:110px"><div class="stage-icon">📋</div><div class="stage-label">PROPUESTA</div></div>
+          <div class="stage-arrow">›</div>
+          <div class="stage" style="height:125px;background:var(--rose);border:2px solid var(--magenta)"><div class="stage-icon">✅</div><div class="stage-label" style="color:var(--magenta)">CLIENTE</div></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="ms-title">KPIs semanales</div>
+        <div class="kpi-grid">
+          <div class="kpi-c"><div class="kpi-lbl">Leads contactados</div><div class="kpi-val" data-target="500">0</div><div class="kpi-unit">por ciclo</div></div>
+          <div class="kpi-c"><div class="kpi-lbl">En conversación</div><div class="kpi-val" data-target="25">0</div><div class="kpi-unit">activos</div></div>
+          <div class="kpi-c"><div class="kpi-lbl">Cierres esperados</div><div class="kpi-val" data-target="8">0</div><div class="kpi-unit">por ciclo</div></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="ms-title">¿Qué incluye el reporte semanal?</div>
+        <div class="proc-steps">
+          <div class="proc-step"><div class="ps-num">✓</div><div><div class="ps-title">Tasa de apertura de emails</div><div class="ps-desc">Porcentaje de prospectos que abrieron cada email de la secuencia.</div></div></div>
+          <div class="proc-step"><div class="ps-num">✓</div><div><div class="ps-title">Respuestas recibidas</div><div class="ps-desc">Cantidad y calidad de respuestas por email y WhatsApp.</div></div></div>
+          <div class="proc-step"><div class="ps-num">✓</div><div><div class="ps-title">Citas agendadas</div><div class="ps-desc">Prospectos que solicitaron demo o llamada de ventas.</div></div></div>
+          <div class="proc-step"><div class="ps-num">✓</div><div><div class="ps-title">Conversión a cliente</div><div class="ps-desc">Nuevos contratos firmados en el ciclo y valor mensual generado (MRR).</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// SCROLL TO
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+}
+
+// NAV ACTIVE
+const slides = document.querySelectorAll('.slide');
+const navLinks = document.querySelectorAll('.nav-link');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const idx = Array.from(slides).indexOf(e.target);
+      if(navLinks[idx]) navLinks[idx].classList.add('active');
+    }
+  });
+}, {threshold:0.5});
+slides.forEach(s => observer.observe(s));
+
+// REVEAL ON SCROLL
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, {threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// MODAL
+function openModal(id) {
+  const modal = document.getElementById('modal-' + id);
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // animate KPI counters
+  setTimeout(() => {
+    modal.querySelectorAll('.kpi-val[data-target]').forEach(el => {
+      const target = parseInt(el.dataset.target);
+      let current = 0;
+      const step = target / 40;
+      const timer = setInterval(() => {
+        current = Math.min(current + step, target);
+        el.textContent = Math.round(current);
+        if(current >= target) clearInterval(timer);
+      }, 30);
+    });
+    // animate score bars
+    modal.querySelectorAll('.score-fill[data-width]').forEach(el => {
+      const w = parseInt(el.dataset.width);
+      el.style.width = (w / 25 * 100) + '%';
+    });
+  }, 100);
+}
+function closeModal(id) {
+  document.getElementById('modal-' + id).classList.remove('open');
+  document.body.style.overflow = '';
+  // reset counters
+  document.querySelectorAll('#modal-' + id + ' .kpi-val').forEach(el => { el.textContent = '0'; });
+  document.querySelectorAll('#modal-' + id + ' .score-fill').forEach(el => { el.style.width = '0'; });
+}
+// Close on bg click
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if(e.target === bg) { const id = bg.id.replace('modal-',''); closeModal(id); } });
+});
+// ESC key
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => { const id = m.id.replace('modal-',''); closeModal(id); });
+});
+</script>
+</body>
+</html>
